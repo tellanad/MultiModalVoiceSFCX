@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AxiomCart Voice AI — Multi-Modal Salesforce Orchestrator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #171d3d 0%, #0c0f20 50%, #060810 100%);
+      --glass-bg: rgba(22, 28, 56, 0.65);
+      --glass-border: rgba(99, 130, 255, 0.18);
+      --glass-glow: rgba(79, 110, 247, 0.12);
+      --primary: #4f6ef7;
+      --primary-glow: #6382ff;
+      --accent-cyan: #00f2fe;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --card-bg: rgba(15, 23, 42, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      background: rgba(10, 14, 30, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f6ef7, #00f2fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(79, 110, 247, 0.4);
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #fff, #93c5fd);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+      width: 100%;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Main Console */
+    .console-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* LangGraph Flow Pipeline */
+    .pipeline-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px var(--glass-glow);
+    }
+
+    .pipeline-header {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .pipeline-nodes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      position: relative;
+    }
+
+    .p-node {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 0.75rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .p-node.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.1);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
+    }
+
+    .p-node.waiting {
+      border-color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.12);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+      animation: pulse 1.8s infinite;
+    }
+
+    .p-node-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .p-node.active .p-node-title {
+      color: #fff;
+    }
+
+    .p-node.waiting .p-node-title {
+      color: var(--accent-amber);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Dialogue Stream */
+    .stream-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 440px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .stream-messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #3b82f6, #4f6ef7);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .msg.agent {
+      align-self: flex-start;
+      background: rgba(30, 41, 69, 0.85);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-citation {
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Interrupt Banner */
+    .interrupt-banner {
+      display: none;
+      background: rgba(245, 158, 11, 0.15);
+      border-top: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 1rem 1.5rem;
+      animation: slideDown 0.3s ease;
+    }
+
+    .interrupt-banner.active {
+      display: block;
+    }
+
+    .interrupt-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent-amber);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .interrupt-question {
+      font-size: 0.9rem;
+      color: #fff;
+      margin-bottom: 0.75rem;
+    }
+
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .quick-chip {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fef3c7;
+      border-radius: 9999px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quick-chip:hover {
+      background: var(--accent-amber);
+      color: #000;
+    }
+
+    /* Voice & Input Controls */
+    .controls-bar {
+      padding: 1.25rem 1.5rem;
+      background: rgba(12, 17, 36, 0.9);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .mic-button {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #4f6ef7, #00f2fe);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      box-shadow: 0 0 25px rgba(79, 110, 247, 0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+    }
+
+    .mic-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 35px rgba(0, 242, 254, 0.7);
+    }
+
+    .mic-button.recording {
+      background: linear-gradient(135deg, #f43f5e, #fb7185);
+      box-shadow: 0 0 35px rgba(244, 63, 94, 0.8);
+      animation: recordingPulse 1.2s infinite;
+    }
+
+    @keyframes recordingPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .input-box {
+      flex: 1;
+      display: flex;
+      background: rgba(30, 41, 69, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 9999px;
+      padding: 0.35rem 0.5rem 0.35rem 1.25rem;
+      align-items: center;
+    }
+
+    .input-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .input-box input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .send-btn:hover {
+      background: var(--primary-glow);
+    }
+
+    /* Quick Test Chips */
+    .sample-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .prompt-chip {
+      background: rgba(30, 41, 69, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .prompt-chip:hover {
+      border-color: var(--accent-cyan);
+      color: #fff;
+      background: rgba(0, 242, 254, 0.1);
+    }
+
+    /* Inspector Sidebar */
+    .inspector-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      backdrop-filter: blur(16px);
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-sf {
+      background: rgba(0, 161, 224, 0.15);
+      border: 1px solid rgba(0, 161, 224, 0.3);
+      color: #38bdf8;
+    }
+
+    .meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+
+    .meta-val {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .meta-val.green {
+      color: var(--accent-emerald);
+    }
+
+    .meta-val.blue {
+      color: #60a5fa;
+    }
+
+    .meta-val.amber {
+      color: var(--accent-amber);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">A</div>
+      <div>
+        <div class="brand-title">AxiomCart Voice AI</div>
+        <div class="brand-subtitle">Salesforce Service Cloud Orchestrator</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-pill" id="crmStatus">
+        <span class="status-dot"></span>
+        <span>Salesforce Org: Active</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Center Console -->
+    <section class="console-pane">
+
+      <!-- Pipeline Stages -->
+      <div class="pipeline-card">
+        <div class="pipeline-header">
+          <span>LangGraph Pipeline State</span>
+          <span id="sessionThreadId" style="color: var(--accent-cyan);">Thread: Initializing...</span>
+        </div>
+        <div class="pipeline-nodes">
+          <div class="p-node active" id="nodeClassify">
+            <div class="p-node-title">1. Classify</div>
+          </div>
+          <div class="p-node" id="nodeProduct">
+            <div class="p-node-title">2. Product Specialist</div>
+          </div>
+          <div class="p-node" id="nodeSupport">
+            <div class="p-node-title">3. Support Specialist</div>
+          </div>
+          <div class="p-node" id="nodeSynthesize">
+            <div class="p-node-title">4. Synthesizer</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialogue Stream -->
+      <div class="stream-card">
+        <div class="stream-messages" id="messagesList">
+          <div class="msg agent">
+            Hello! I am your AxiomCart Voice Assistant connected to Salesforce Service Cloud. You can ask about our catalog and pricing, check the status of your order (such as ORD102), or ask both in one turn!
+          </div>
+        </div>
+
+        <!-- Interrupt Banner -->
+        <div class="interrupt-banner" id="interruptBanner">
+          <div class="interrupt-title">
+            <span>⚠️</span> LangGraph Interruption: Input Required
+          </div>
+          <div class="interrupt-question" id="interruptQuestion">
+            Could you please verify your name or provide your order number?
+          </div>
+          <div class="quick-replies" id="quickReplies">
+            <!-- Dynamic pills inserted here -->
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-bar">
+          <button class="mic-button" id="micBtn" title="Speak to assistant">🎤</button>
+          <div class="input-box">
+            <input type="text" id="textInput" placeholder="Speak or type your request (e.g. 'I need help with order ORD102 and AxiomCart Next')..." />
+            <button class="send-btn" id="sendBtn" title="Send message">➔</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sample Prompts -->
+      <div class="sample-prompts">
+        <span style="font-size: 0.8rem; color: var(--text-dim); align-self: center;">Try saying:</span>
+        <div class="prompt-chip" onclick="submitPrompt('I need help with order ORD102, and I also want to know whether the newer product is available.')">
+          Combined MVP: Order ORD102 + AxiomCart Next
+        </div>
+        <div class="prompt-chip" onclick="submitPrompt('How much does AxiomCart Classic cost and is it in stock?')">
+          Product Catalog & Inventory
+        </div>
+        <div class="prompt-chip" onclick="submitPrompt('Can you check my recent order?')">
+          Missing Order Interrupt Flow
+        </div>
+        <div class="prompt-chip" onclick="submitPrompt('I would like to speak to a human representative')">
+          Human Escalation & Case Creation
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Inspector Panel -->
+    <aside class="inspector-pane">
+      <!-- Customer Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>Customer Identity</span>
+          <span class="badge badge-sf" id="custBadge">Unverified</span>
+        </div>
+        <div class="meta-list">
+          <div class="meta-row">
+            <span>Contact</span>
+            <span class="meta-val" id="custName">Maya Chen (Demo)</span>
+          </div>
+          <div class="meta-row">
+            <span>Account</span>
+            <span class="meta-val" id="custAccount">001bm0000384s25AAA</span>
+          </div>
+          <div class="meta-row">
+            <span>Security Policy</span>
+            <span class="meta-val green">Strict Scope Check</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Order Inspector -->
+      <div class="card">
+        <div class="card-title">
+          <span>Active Order (ORD102)</span>
+          <span class="badge badge-sf" id="orderStatus">Draft</span>
+        </div>
+        <div class="meta-list">
+          <div class="meta-row">
+            <span>Salesforce ID</span>
+            <span class="meta-val">801bm0000384d9WAAQ</span>
+          </div>
+          <div class="meta-row">
+            <span>Total Amount</span>
+            <span class="meta-val green">$15,000.00</span>
+          </div>
+          <div class="meta-row">
+            <span>Order Line Items</span>
+            <span class="meta-val">GC1020, SL9020</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Catalog Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>Salesforce Catalog</span>
+          <span class="badge badge-sf">Std Price Book</span>
+        </div>
+        <div class="meta-list">
+          <div class="meta-row">
+            <span>AxiomCart Classic (AX-C100)</span>
+            <span class="meta-val blue">$99.99 (In Stock)</span>
+          </div>
+          <div class="meta-row">
+            <span>AxiomCart Next (AX-N200)</span>
+            <span class="meta-val blue">$129.99 (In Stock)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Human Escalation Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>Salesforce Case</span>
+          <span class="badge badge-sf" id="caseBadge">Idle</span>
+        </div>
+        <div class="meta-list">
+          <div class="meta-row">
+            <span>Case Reference</span>
+            <span class="meta-val amber" id="caseNumber">None</span>
+          </div>
+          <div class="meta-row">
+            <span>Routing Status</span>
+            <span class="meta-val" id="routingStatus">Automated AI Resolution</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    let currentThreadId = 'thread_' + Math.random().toString(36).substring(2, 10);
+    document.getElementById('sessionThreadId').textContent = 'Thread: ' + currentThreadId;
+
+    let isRecording = false;
+    let recognition = null;
+
+    // Check browser Speech Recognition support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isRecording = true;
+        document.getElementById('micBtn').classList.add('recording');
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('textInput').value = transcript;
+        sendTurn(transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        stopRecording();
+      };
+
+      recognition.onend = () => {
+        stopRecording();
+      };
+    }
+
+    function toggleRecording() {
+      if (!recognition) {
+        alert('Browser Speech Recognition not supported in this browser. Please use text input or Chrome/Edge/Safari.');
+        return;
+      }
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      document.getElementById('micBtn').classList.remove('recording');
+    }
+
+    document.getElementById('micBtn').addEventListener('click', toggleRecording);
+    document.getElementById('sendBtn').addEventListener('click', () => {
+      const text = document.getElementById('textInput').value.trim();
+      if (text) sendTurn(text);
+    });
+
+    document.getElementById('textInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const text = document.getElementById('textInput').value.trim();
+        if (text) sendTurn(text);
+      }
+    });
+
+    function submitPrompt(text) {
+      document.getElementById('textInput').value = text;
+      sendTurn(text);
+    }
+
+    function addMessage(role, text, citations = []) {
+      const messagesList = document.getElementById('messagesList');
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.innerHTML = text.replace(/\n/g, '<br/>');
+
+      if (citations && citations.length > 0) {
+        const citDiv = document.createElement('div');
+        citDiv.className = 'msg-citation';
+        citDiv.innerHTML = '<span>🔗 Sources:</span> ' + citations.join(', ');
+        div.appendChild(citDiv);
+      }
+
+      messagesList.appendChild(div);
+      messagesList.scrollTop = messagesList.scrollHeight;
+
+      if (role === 'agent' && 'speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.05;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    async function sendTurn(transcript, resumeValue = null) {
+      document.getElementById('textInput').value = '';
+      addMessage('user', transcript);
+      setPipelineStage('classifying');
+
+      try {
+        const response = await fetch('/api/sessions/turn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript: transcript,
+            thread_id: currentThreadId,
+            resume_value: resumeValue,
+            is_final: true
+          })
+        });
+
+        const data = await response.json();
+        handleTurnResponse(data);
+      } catch (err) {
+        console.error('Turn dispatch error:', err);
+        addMessage('agent', 'Error connecting to the orchestrator: ' + err.message);
+        setPipelineStage('idle');
+      }
+    }
+
+    function handleTurnResponse(data) {
+      const banner = document.getElementById('interruptBanner');
+
+      if (data.status === 'interrupted' && data.interruption) {
+        setPipelineStage('waiting');
+        banner.classList.add('active');
+        document.getElementById('interruptQuestion').textContent = data.interruption.question;
+
+        const repliesDiv = document.getElementById('quickReplies');
+        repliesDiv.innerHTML = '';
+
+        if (data.interruption.field === 'order_number') {
+          addQuickChip('ORD102');
+          addQuickChip('00000100');
+        } else if (data.interruption.field === 'verification') {
+          addQuickChip('Maya Chen');
+          addQuickChip('maya.chen@example.com');
+        }
+      } else {
+        banner.classList.remove('active');
+        setPipelineStage('completed');
+
+        if (data.final_response) {
+          addMessage('agent', data.final_response.display_text, data.final_response.citations);
+        }
+
+        if (data.status === 'escalated') {
+          document.getElementById('caseBadge').textContent = 'Escalated';
+          document.getElementById('caseBadge').className = 'badge badge-sf' ;
+          document.getElementById('caseNumber').textContent = 'Case Created';
+          document.getElementById('routingStatus').textContent = 'Assigned to Service Representative';
+        }
+
+        // Update inspector badges
+        if (data.final_response && data.final_response.display_text.includes('ORD102')) {
+          document.getElementById('custBadge').textContent = 'Verified';
+          document.getElementById('custBadge').style.borderColor = '#10b981';
+          document.getElementById('custBadge').style.color = '#34d399';
+        }
+      }
+    }
+
+    function addQuickChip(text) {
+      const chip = document.createElement('div');
+      chip.className = 'quick-chip';
+      chip.textContent = text;
+      chip.onclick = () => {
+        document.getElementById('interruptBanner').classList.remove('active');
+        sendTurn(text, text);
+      };
+      document.getElementById('quickReplies').appendChild(chip);
+    }
+
+    function setPipelineStage(stage) {
+      const nodeClassify = document.getElementById('nodeClassify');
+      const nodeProduct = document.getElementById('nodeProduct');
+      const nodeSupport = document.getElementById('nodeSupport');
+      const nodeSynthesize = document.getElementById('nodeSynthesize');
+
+      [nodeClassify, nodeProduct, nodeSupport, nodeSynthesize].forEach(n => {
+        n.className = 'p-node';
+      });
+
+      if (stage === 'classifying') {
+        nodeClassify.className = 'p-node active';
+      } else if (stage === 'waiting') {
+        nodeSupport.className = 'p-node waiting';
+      } else if (stage === 'completed') {
+        nodeProduct.className = 'p-node active';
+        nodeSupport.className = 'p-node active';
+        nodeSynthesize.className = 'p-node active';
+      }
+    }
+  </script>
+</body>
+</html>
