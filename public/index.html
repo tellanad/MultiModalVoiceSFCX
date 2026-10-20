@@ -789,6 +789,13 @@
           })
         });
 
+        if (!response.ok) {
+          const errText = await response.text();
+          addMessage('agent', `Server Error (${response.status}): ${errText}`);
+          setPipelineStage('idle');
+          return;
+        }
+
         const data = await response.json();
         handleTurnResponse(data);
       } catch (err) {
