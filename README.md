@@ -42,15 +42,6 @@ flowchart LR
     Salesforce --> Rep[Salesforce service representative]
 ```
 
-## Documentation
-
-- [Product requirements](docs/PRODUCT_REQUIREMENTS.md)
-- [System architecture](docs/ARCHITECTURE.md)
-- [Integration contracts](docs/INTEGRATION_CONTRACTS.md)
-- [Implementation plan](docs/IMPLEMENTATION_PLAN.md)
-- [Test plan](docs/TEST_PLAN.md)
-- [Architecture decisions and open questions](docs/DECISIONS.md)
-- [Salesforce development-org setup](docs/SALESFORCE_SETUP.md)
 
 ## Proposed repository layout
 
