@@ -66,6 +66,7 @@ class TokenResponse(BaseModel):
 
 @router.post("/api/sessions/token", response_model=TokenResponse, tags=["Session"])
 @router.post("/sessions/token", response_model=TokenResponse, tags=["Session"])
+@router.post("/api/index/sessions/token", response_model=TokenResponse, tags=["Session"])
 async def create_session_token(req: TokenRequest) -> TokenResponse:
     """Generates a LiveKit JWT token for the browser voice client."""
     from axiomcart.integrations.livekit import LiveKitService
@@ -89,6 +90,9 @@ async def create_session_token(req: TokenRequest) -> TokenResponse:
 
 @router.post("/api/sessions/turn", response_model=TurnResponse, tags=["Session"])
 @router.post("/sessions/turn", response_model=TurnResponse, tags=["Session"])
+@router.post("/api/index/sessions/turn", response_model=TurnResponse, tags=["Session"])
+@router.post("/api/index", response_model=TurnResponse, tags=["Session"])
+@router.post("/api", response_model=TurnResponse, tags=["Session"])
 async def execute_turn(
     request: TurnRequest,
     orchestrator: Any = Depends(get_orchestrator),
