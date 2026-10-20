@@ -37,10 +37,15 @@ class SalesforceClient:
         api_version: Optional[str] = None,
         http_client: Optional[httpx.AsyncClient] = None,
     ):
-        self.instance_url = str(instance_url or settings.salesforce_instance_url).rstrip("/")
-        self.client_id = client_id or settings.salesforce_client_id
+        raw_url = str(instance_url or settings.salesforce_instance_url).strip().rstrip("/")
+        if raw_url.startswith("ttps://"):
+            raw_url = "h" + raw_url
+        elif not raw_url.startswith("http://") and not raw_url.startswith("https://"):
+            raw_url = "https://" + raw_url
+        self.instance_url = raw_url
+        self.client_id = (client_id or settings.salesforce_client_id).strip()
         self.client_secret = client_secret or settings.salesforce_client_secret
-        self.api_version = api_version or settings.salesforce_api_version
+        self.api_version = (api_version or settings.salesforce_api_version).strip()
         self._http_client = http_client
         self._access_token: Optional[str] = None
         self._token_instance_url: Optional[str] = None
