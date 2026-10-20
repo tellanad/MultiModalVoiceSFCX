@@ -5,14 +5,14 @@
       "includeFiles": "src/**"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
     },
     {
-      "source": "/health(.*)",
-      "destination": "/api/index"
+      "src": "/health(.*)",
+      "dest": "api/index.py"
     }
   ]
 }
