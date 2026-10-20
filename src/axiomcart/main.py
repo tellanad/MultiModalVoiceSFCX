@@ -38,7 +38,16 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(router)
+
+    # Mount public static files if present (for local runs)
+    import os
+    from fastapi.staticfiles import StaticFiles
+    public_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "public"))
+    if os.path.isdir(public_dir):
+        app.mount("/", StaticFiles(directory=public_dir, html=True), name="static")
+
     return app
+
 
 
 app = create_app()

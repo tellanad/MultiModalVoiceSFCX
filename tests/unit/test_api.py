@@ -35,6 +35,11 @@ async def test_health_endpoints(test_app):
         ready_data = ready_resp.json()
         assert "salesforce_configured" in ready_data
 
+        root_resp = await client.get("/")
+        assert root_resp.status_code == 200
+        assert "AxiomCart Voice AI" in root_resp.text
+
+
 
 @pytest.mark.asyncio
 async def test_create_session_token(test_app):
