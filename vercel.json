@@ -3,19 +3,16 @@
   "functions": {
     "api/*.py": {
       "includeFiles": "src/**"
-    },
-    "main.py": {
-      "includeFiles": "src/**"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "destination": "/api/index"
     },
     {
       "source": "/health(.*)",
-      "destination": "/api/index.py"
+      "destination": "/api/index"
     }
   ]
 }

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # Salesforce Configuration
-    salesforce_instance_url: HttpUrl = "https://example.my.salesforce.com"  # type: ignore[assignment]
+    salesforce_instance_url: str = "https://example.my.salesforce.com"
     salesforce_client_id: str = ""
     salesforce_client_secret: SecretStr = SecretStr("")
     salesforce_api_version: str = "v68.0"
