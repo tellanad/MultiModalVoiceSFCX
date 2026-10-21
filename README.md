@@ -24,6 +24,8 @@ Actual phone-network integration and live-call transfer are deliberately outside
 the first milestone. The initial demo uses a LiveKit web call and models the
 handoff as a Salesforce Case and routing request.
 
+<img width="1354" height="903" alt="image" src="https://github.com/user-attachments/assets/bee6f2d1-c654-458b-a1f4-f99582d23bb2" />
+
 ## Architecture at a glance
 
 ```mermaid
